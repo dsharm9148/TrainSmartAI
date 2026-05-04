@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<HealthData locale="en_US">
+  <ExportDate value="2024-01-05 12:00:00 -0500"/>
+
+  <!-- ===== STEPS (5 days, all valid) ===== -->
+  <Record type="HKQuantityTypeIdentifierStepCount" sourceName="iPhone" unit="count"
+          value="8543"  startDate="2024-01-01 00:00:00 -0500" endDate="2024-01-01 23:59:59 -0500"/>
+  <Record type="HKQuantityTypeIdentifierStepCount" sourceName="iPhone" unit="count"
+          value="10234" startDate="2024-01-02 00:00:00 -0500" endDate="2024-01-02 23:59:59 -0500"/>
+  <Record type="HKQuantityTypeIdentifierStepCount" sourceName="iPhone" unit="count"
+          value="6789"  startDate="2024-01-03 00:00:00 -0500" endDate="2024-01-03 23:59:59 -0500"/>
+  <Record type="HKQuantityTypeIdentifierStepCount" sourceName="iPhone" unit="count"
+          value="11502" startDate="2024-01-04 00:00:00 -0500" endDate="2024-01-04 23:59:59 -0500"/>
+  <Record type="HKQuantityTypeIdentifierStepCount" sourceName="iPhone" unit="count"
+          value="7210"  startDate="2024-01-05 00:00:00 -0500" endDate="2024-01-05 23:59:59 -0500"/>
+
+  <!-- ===== HEART RATE (multiple per day; one invalid at 300 BPM) ===== -->
+  <Record type="HKQuantityTypeIdentifierHeartRate" sourceName="Apple Watch" unit="count/min"
+          value="65" startDate="2024-01-01 08:00:00 -0500" endDate="2024-01-01 08:00:05 -0500"/>
+  <Record type="HKQuantityTypeIdentifierHeartRate" sourceName="Apple Watch" unit="count/min"
+          value="72" startDate="2024-01-01 12:00:00 -0500" endDate="2024-01-01 12:00:05 -0500"/>
+  <Record type="HKQuantityTypeIdentifierHeartRate" sourceName="Apple Watch" unit="count/min"
+          value="68" startDate="2024-01-01 18:00:00 -0500" endDate="2024-01-01 18:00:05 -0500"/>
+  <!-- INVALID: 300 BPM — cleaner should drop this -->
+  <Record type="HKQuantityTypeIdentifierHeartRate" sourceName="Apple Watch" unit="count/min"
+          value="300" startDate="2024-01-02 09:00:00 -0500" endDate="2024-01-02 09:00:05 -0500"/>
+  <Record type="HKQuantityTypeIdentifierHeartRate" sourceName="Apple Watch" unit="count/min"
+          value="70" startDate="2024-01-02 10:00:00 -0500" endDate="2024-01-02 10:00:05 -0500"/>
+  <Record type="HKQuantityTypeIdentifierHeartRate" sourceName="Apple Watch" unit="count/min"
+          value="75" startDate="2024-01-03 14:00:00 -0500" endDate="2024-01-03 14:00:05 -0500"/>
+  <Record type="HKQuantityTypeIdentifierHeartRate" sourceName="Apple Watch" unit="count/min"
+          value="82" startDate="2024-01-04 16:00:00 -0500" endDate="2024-01-04 16:00:05 -0500"/>
+  <Record type="HKQuantityTypeIdentifierHeartRate" sourceName="Apple Watch" unit="count/min"
+          value="69" startDate="2024-01-05 11:00:00 -0500" endDate="2024-01-05 11:00:05 -0500"/>
+
+  <!-- ===== RESTING HEART RATE (1 per day, all valid) ===== -->
+  <Record type="HKQuantityTypeIdentifierRestingHeartRate" sourceName="Apple Watch" unit="count/min"
+          value="58" startDate="2024-01-01 00:00:00 -0500" endDate="2024-01-01 23:59:59 -0500"/>
+  <Record type="HKQuantityTypeIdentifierRestingHeartRate" sourceName="Apple Watch" unit="count/min"
+          value="60" startDate="2024-01-02 00:00:00 -0500" endDate="2024-01-02 23:59:59 -0500"/>
+  <Record type="HKQuantityTypeIdentifierRestingHeartRate" sourceName="Apple Watch" unit="count/min"
+          value="57" startDate="2024-01-03 00:00:00 -0500" endDate="2024-01-03 23:59:59 -0500"/>
+  <Record type="HKQuantityTypeIdentifierRestingHeartRate" sourceName="Apple Watch" unit="count/min"
+          value="63" startDate="2024-01-04 00:00:00 -0500" endDate="2024-01-04 23:59:59 -0500"/>
+  <Record type="HKQuantityTypeIdentifierRestingHeartRate" sourceName="Apple Watch" unit="count/min"
+          value="59" startDate="2024-01-05 00:00:00 -0500" endDate="2024-01-05 23:59:59 -0500"/>
+
+  <!-- ===== SLEEP ===== -->
+  <!-- INVALID: InBed category — cleaner should drop this -->
+  <Record type="HKCategoryTypeIdentifierSleepAnalysis" sourceName="iPhone"
+          value="HKCategoryValueSleepAnalysisInBed"
+          startDate="2024-01-01 22:30:00 -0500" endDate="2024-01-02 07:30:00 -0500"/>
+  <!-- VALID: Asleep records (4 nights) -->
+  <Record type="HKCategoryTypeIdentifierSleepAnalysis" sourceName="iPhone"
+          value="HKCategoryValueSleepAnalysisAsleep"
+          startDate="2024-01-01 23:00:00 -0500" endDate="2024-01-02 07:00:00 -0500"/>
+  <Record type="HKCategoryTypeIdentifierSleepAnalysis" sourceName="iPhone"
+          value="HKCategoryValueSleepAnalysisAsleep"
+          startDate="2024-01-02 23:30:00 -0500" endDate="2024-01-03 06:30:00 -0500"/>
+  <Record type="HKCategoryTypeIdentifierSleepAnalysis" sourceName="iPhone"
+          value="HKCategoryValueSleepAnalysisAsleep"
+          startDate="2024-01-03 22:00:00 -0500" endDate="2024-01-04 06:00:00 -0500"/>
+  <Record type="HKCategoryTypeIdentifierSleepAnalysis" sourceName="iPhone"
+          value="HKCategoryValueSleepAnalysisAsleep"
+          startDate="2024-01-04 23:00:00 -0500" endDate="2024-01-05 06:30:00 -0500"/>
+
+  <!-- ===== WORKOUTS (2 total) ===== -->
+  <Workout activityType="HKWorkoutActivityTypeRunning"
+           duration="30.5" durationUnit="min"
+           totalEnergyBurned="285" totalEnergyBurnedUnit="kcal"
+           sourceName="Apple Watch"
+           startDate="2024-01-02 07:00:00 -0500" endDate="2024-01-02 07:30:00 -0500"/>
+  <Workout activityType="HKWorkoutActivityTypeCycling"
+           duration="45.2" durationUnit="min"
+           totalEnergyBurned="320" totalEnergyBurnedUnit="kcal"
+           sourceName="Apple Watch"
+           startDate="2024-01-04 17:00:00 -0500" endDate="2024-01-04 17:45:00 -0500"/>
+
+  <!-- ===== IRRELEVANT TYPE (should be filtered by parser) ===== -->
+  <Record type="HKQuantityTypeIdentifierBodyMass" sourceName="iPhone" unit="kg"
+          value="70.5" startDate="2024-01-01 08:00:00 -0500" endDate="2024-01-01 08:00:01 -0500"/>
+
+</HealthData>
