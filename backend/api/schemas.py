@@ -44,6 +44,17 @@ class ReadinessOut(BaseModel):
     explanation: Optional[str] = None
 
 
+class RecommendationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    date: date
+    category: Optional[str] = None
+    priority: Optional[int] = None
+    text: str
+    reasoning: Optional[str] = None
+
+
 class InsightOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
