@@ -16,6 +16,7 @@ The entire AI stack runs on your machine. No OpenAI key, no cloud calls, no per-
 | **Weekly summaries** | Monday-anchored rollups: avg steps/sleep/HR, sleep consistency score, total workout minutes, workout days, avg readiness |
 | **Insights** | Correlation-based plain-English observations — sleep vs activity (Pearson r), RHR trend (polyfit), sleep trend, workout pattern, post-workout RHR, weekend sleep, steps trend |
 | **Recommendations** | 10 rules across recovery / workout / sleep / habit categories with priority tiers (1=urgent, 2=worth doing, 3=nudge). Each recommendation stores its reasoning |
+| **Day-type clustering** | K-means over normalized daily features (steps, sleep, resting HR, workout minutes) with auto-labelled archetypes — "hard training day", "deep recovery day", "active day", "sedentary day", "stressed / under-recovered day", "balanced day" |
 | **AI chat** | LangChain RAG chain over indexed summaries — retrieval (Chroma) + Ollama embeddings + Ollama LLM. Multi-turn conversation history persisted to Postgres |
 
 ---
@@ -27,8 +28,9 @@ The entire AI stack runs on your machine. No OpenAI key, no cloud calls, no per-
 | API | FastAPI + Pydantic v2 |
 | Database | PostgreSQL 16 + SQLAlchemy 2.0 + Alembic |
 | Data processing | pandas, NumPy |
+| ML | scikit-learn (K-means + StandardScaler) |
 | RAG | LangChain + Chroma (vector store) + Ollama (embeddings + LLM) |
-| Frontend | Streamlit + Plotly *(in progress)* |
+| Frontend | Streamlit + Plotly |
 | Testing | pytest + httpx + FastAPI TestClient |
 
 ---
@@ -154,6 +156,14 @@ uvicorn backend.api.main:app --reload
 
 Interactive docs at **http://localhost:8000/docs**.
 
+### 8. Start the Streamlit frontend (separate terminal)
+
+```bash
+streamlit run frontend/Home.py
+```
+
+Opens at **http://localhost:8501**. The sidebar exposes 7 pages: Upload, Dashboard, Readiness, Insights, Recommendations, Chat, and Day Types. The frontend talks to the API via the `TRAINSMART_API_URL` environment variable (default `http://localhost:8000`).
+
 ---
 
 ## Trying it out end to end
@@ -238,6 +248,8 @@ Or use the Swagger UI at http://localhost:8000/docs — much easier for ad-hoc e
 | `POST` | `/chat` | Multi-turn chat — body `{message, session_id?}` |
 | `GET` | `/chat/sessions` | List chat sessions, newest first |
 | `GET` | `/chat/sessions/{id}/messages` | Full transcript for a session |
+| `GET` | `/clusters` | Day-type cluster assignments — `?start_date=&end_date=` |
+| `POST` | `/clusters/recompute` | Re-fit K-means (`?n_clusters=4`) |
 
 Full interactive docs at `http://localhost:8000/docs`.
 
@@ -249,7 +261,7 @@ Full interactive docs at `http://localhost:8000/docs`.
 pytest tests/ -v
 ```
 
-258 tests covering ingestion, daily features, readiness scoring, insights, recommendations, weekly summaries, RAG (document builders, indexer, chain), chat (sessions, history, persistence), and HTTP routes. The tests use Postgres (`trainsmart_test`) for DB integration and stub out the LLM via `FakeListChatModel` + a fake embeddings class — they run in under 3 seconds end-to-end and make zero network calls.
+273 tests covering ingestion, daily features, readiness scoring, insights, recommendations, weekly summaries, RAG (document builders, indexer, chain), chat (sessions, history, persistence), K-means clustering, and HTTP routes. The tests use Postgres (`trainsmart_test`) for DB integration and stub out the LLM via `FakeListChatModel` + a fake embeddings class — they run in under 4 seconds end-to-end and make zero network calls.
 
 Run a specific module:
 
@@ -273,9 +285,10 @@ backend/
 │       ├── readiness.py
 │       ├── insights.py
 │       ├── recommendations.py
-│       └── chat.py
+│       ├── chat.py
+│       └── clusters.py
 ├── analytics/          # Insights engine + weekly summary computation
-├── clustering/         # K-means day-type labeling (Day 17)
+├── clustering/         # K-means day-type labeling
 ├── db/                 # SQLAlchemy models, Alembic migrations, session
 ├── ingestion/          # XML parser, cleaner, bulk loader, pipeline
 ├── preprocessing/      # Daily feature aggregation
@@ -283,9 +296,22 @@ backend/
 ├── recommendations/    # Rule engine
 └── scoring/            # Readiness score
 
+frontend/
+├── Home.py             # Landing page
+├── lib/api.py          # HTTP client wrapping the FastAPI backend
+└── pages/              # Streamlit multipage app
+    ├── 1_Upload.py
+    ├── 2_Dashboard.py
+    ├── 3_Readiness.py
+    ├── 4_Insights.py
+    ├── 5_Recommendations.py
+    ├── 6_Chat.py
+    └── 7_DayTypes.py
+
 data/synthetic/         # Demo data generator
-frontend/               # Streamlit pages (in progress)
-tests/                  # pytest suite (258 tests)
+tests/                  # pytest suite (273 tests)
+.streamlit/             # Streamlit theme + server config
+render.yaml             # Render deployment blueprint
 ```
 
 ---
@@ -321,6 +347,25 @@ All settings live in `backend/config.py` and can be overridden via environment v
 
 ---
 
+## Deployment
+
+The repo includes a `render.yaml` that provisions a FastAPI web service and a managed Postgres database on [Render](https://render.com). Push to GitHub, connect the repo in Render's "New Blueprint" flow, and it spins up both services. Alembic migrations run as part of the build step.
+
+```yaml
+services:
+  - type: web
+    name: trainsmart-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt && alembic upgrade head
+    startCommand: uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT
+```
+
+For the frontend, deploy `frontend/Home.py` to [Streamlit Community Cloud](https://streamlit.io/cloud). Set `TRAINSMART_API_URL` in the Streamlit app secrets to point at the Render API URL.
+
+**One caveat:** Ollama runs locally on your machine and is not deployed. In a cloud deployment, the dashboard, insights, recommendations, readiness, and clustering pages all work end-to-end against the Render API. The **Chat** page requires the local stack (Ollama + Chroma index) because LLM inference happens on your machine.
+
+---
+
 ## Roadmap
 
 - [x] Days 1–5: Scaffold, models, ingestion pipeline, daily feature aggregation
@@ -332,6 +377,6 @@ All settings live in `backend/config.py` and can be overridden via environment v
 - [x] Day 11: Weekly summary computation
 - [x] Day 12: LangChain RAG chain + Chroma indexing
 - [x] Day 13: Chat API with persistent conversation history
-- [ ] Days 14–16: Streamlit dashboard pages (Upload, Trends, Readiness, Insights, Chat)
-- [ ] Day 17: K-means day-type clustering
-- [ ] Day 18: Deployment polish (Render API, Streamlit Cloud frontend)
+- [x] Days 14–16: Streamlit dashboard pages (Upload, Dashboard, Readiness, Insights, Recommendations, Chat)
+- [x] Day 17: K-means day-type clustering + Day Types page
+- [x] Day 18: Deployment config (Render API + Streamlit Cloud), theme polish

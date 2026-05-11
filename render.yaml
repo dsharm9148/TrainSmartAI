@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: trainsmart-api
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt && alembic upgrade head
+    startCommand: uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: trainsmart-db
+          property: connectionString
+      - key: ENVIRONMENT
+        value: production
+      # NOTE: Ollama and the local LLM are not deployed here — the chat
+      # endpoints require a local TrainSmartAI setup. All other endpoints
+      # work cloud-side.
+
+databases:
+  - name: trainsmart-db
+    plan: starter
+    databaseName: trainsmart
+    user: trainsmart
