@@ -7,15 +7,15 @@ import requests
 import streamlit as st
 
 from frontend.lib import api
+from frontend.lib.ui import empty_state, hero, inject_global_css, pill
 
 st.set_page_config(page_title="Insights | TrainSmartAI", layout="wide")
-st.title("Insights")
-st.caption(
-    "Correlation-based observations from your history. Insights regenerate "
-    "on every upload — older runs are replaced for the same date."
-)
+inject_global_css()
 
-# ─── Filter ─────────────────────────────────────────────────────────────────
+hero(
+    "Insights",
+    "Correlation-based observations from your history. Regenerated on every upload.",
+)
 
 INSIGHT_TYPES = [
     "All",
@@ -27,6 +27,15 @@ INSIGHT_TYPES = [
     "weekend_sleep",
     "steps_trend",
 ]
+TYPE_TONE = {
+    "sleep_activity": "blue",
+    "rhr_trend": "red",
+    "sleep_trend": "violet",
+    "workout_pattern": "blue",
+    "post_workout_rhr": "red",
+    "weekend_sleep": "violet",
+    "steps_trend": "green",
+}
 
 selected = st.selectbox("Filter by type", INSIGHT_TYPES, index=0)
 
@@ -37,21 +46,21 @@ except requests.RequestException as e:
     st.stop()
 
 if not rows:
-    st.info(
-        "No insights match this filter. Insights are generated automatically "
-        "after each upload — try uploading more data, or pick another filter."
+    empty_state(
+        "No insights yet",
+        "Insights are generated automatically after each upload. Try uploading more data or changing the filter.",
     )
     st.stop()
 
-# Newest first
 rows.sort(key=lambda r: r.get("generated_for", ""), reverse=True)
-
-# ─── Render as cards ────────────────────────────────────────────────────────
 
 for r in rows:
     label = r.get("insight_type") or "general"
+    tone = TYPE_TONE.get(label, "slate")
     with st.container(border=True):
-        c1, c2 = st.columns([1, 4])
-        c1.markdown(f"**{label}**")
-        c1.caption(r.get("generated_for", ""))
-        c2.write(r["text"])
+        head_l, head_r = st.columns([1, 5])
+        with head_l:
+            st.markdown(pill(label.replace("_", " "), tone), unsafe_allow_html=True)
+            st.caption(r.get("generated_for", ""))
+        with head_r:
+            st.write(r["text"])

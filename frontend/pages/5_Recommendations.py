@@ -9,21 +9,24 @@ import requests
 import streamlit as st
 
 from frontend.lib import api
+from frontend.lib.ui import (
+    category_tone,
+    empty_state,
+    hero,
+    inject_global_css,
+    pill,
+    priority_tone,
+)
 
 st.set_page_config(page_title="Recommendations | TrainSmartAI", layout="wide")
-st.title("Recommendations")
-st.caption(
-    "Rule-based suggestions tailored to your recent data. Each rule explains "
-    "why it fired."
+inject_global_css()
+
+hero(
+    "Recommendations",
+    "Rule-based suggestions tailored to your recent data. Each entry explains why it fired.",
 )
 
 CATEGORIES = ["All", "recovery", "workout", "sleep", "habit"]
-CATEGORY_COLOR = {
-    "recovery": "#dc2626",
-    "workout": "#2563eb",
-    "sleep": "#7c3aed",
-    "habit": "#16a34a",
-}
 
 c1, c2 = st.columns(2)
 with c1:
@@ -42,33 +45,36 @@ except requests.RequestException as e:
     st.stop()
 
 if not rows:
-    st.info("No recommendations match this filter.")
+    empty_state(
+        "No recommendations match this filter",
+        "Try clearing the date filter or picking a different category.",
+    )
     st.stop()
 
-# ─── Group by priority ──────────────────────────────────────────────────────
-
+# Group by priority
 by_pri: dict[int, list[dict]] = {1: [], 2: [], 3: []}
 for r in rows:
     by_pri.setdefault(r.get("priority") or 2, []).append(r)
 
-PRIORITY_LABEL = {1: "Priority 1 — act today", 2: "Priority 2 — worth doing", 3: "Priority 3 — nudge"}
+PRIORITY_LABEL = {
+    1: "Priority 1 — act today",
+    2: "Priority 2 — worth doing",
+    3: "Priority 3 — nudge",
+}
 
 for pri in (1, 2, 3):
     if not by_pri.get(pri):
         continue
-    st.subheader(PRIORITY_LABEL[pri])
+    st.markdown(f"### {PRIORITY_LABEL[pri]}")
     for r in by_pri[pri]:
         cat = r.get("category") or "general"
-        color = CATEGORY_COLOR.get(cat, "#64748b")
         with st.container(border=True):
-            c1, c2 = st.columns([1, 5])
-            with c1:
-                st.markdown(
-                    f"<span style='color:{color}; font-weight:600'>{cat.upper()}</span>",
-                    unsafe_allow_html=True,
-                )
+            head_l, head_r = st.columns([1, 5])
+            with head_l:
+                st.markdown(pill(cat, category_tone(cat)), unsafe_allow_html=True)
+                st.markdown(pill(f"P{pri}", priority_tone(pri)), unsafe_allow_html=True)
                 st.caption(r.get("date", ""))
-            with c2:
+            with head_r:
                 st.write(r["text"])
                 if r.get("reasoning"):
-                    st.caption(f"Why: {r['reasoning']}")
+                    st.caption(f"Why fired: {r['reasoning']}")
