@@ -10,6 +10,7 @@ class UploadResponse(BaseModel):
     inserted: int
     filtered: int
     days_computed: int
+    weeks_computed: int
     message: str
     by_type: dict[str, int]
 
