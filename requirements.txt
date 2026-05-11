@@ -14,12 +14,12 @@ psycopg2-binary>=2.9.9
 pandas>=2.2.0
 numpy>=1.26.0
 
-# LLM / RAG
+# LLM / RAG (Ollama runs the models locally — install via `brew install ollama`)
 langchain>=0.2.0
-langchain-openai>=0.1.0
+langchain-ollama>=1.0.0
+langchain-chroma>=1.0.0
 langchain-community>=0.2.0
 chromadb>=0.5.0
-openai>=1.30.0
 
 # Frontend
 streamlit>=1.35.0

@@ -19,12 +19,12 @@ from backend.rag.documents import load_all_documents
 def get_vectorstore(embeddings=None):
     """Return the persisted Chroma collection (read-only helper)."""
     from langchain_chroma import Chroma
-    from langchain_openai import OpenAIEmbeddings
+    from langchain_ollama import OllamaEmbeddings
 
     if embeddings is None:
-        embeddings = OpenAIEmbeddings(
-            model="text-embedding-3-small",
-            api_key=settings.openai_api_key,
+        embeddings = OllamaEmbeddings(
+            model=settings.ollama_embed_model,
+            base_url=settings.ollama_base_url,
         )
     return Chroma(
         collection_name="health_data",
@@ -41,16 +41,16 @@ def index_health_data(db: Session, embeddings=None) -> int:
     embeddings. Returns the number of documents indexed.
     """
     from langchain_chroma import Chroma
-    from langchain_openai import OpenAIEmbeddings
+    from langchain_ollama import OllamaEmbeddings
 
     docs = load_all_documents(db)
     if not docs:
         return 0
 
     if embeddings is None:
-        embeddings = OpenAIEmbeddings(
-            model="text-embedding-3-small",
-            api_key=settings.openai_api_key,
+        embeddings = OllamaEmbeddings(
+            model=settings.ollama_embed_model,
+            base_url=settings.ollama_base_url,
         )
 
     # Drop and recreate to prevent embedding accumulation across re-ingestions

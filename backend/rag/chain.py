@@ -39,18 +39,18 @@ def build_rag_chain(embeddings=None, llm=None):
         {"question": str, "history": list[BaseMessage]}
     and returns a plain-text answer. History may be an empty list.
     """
-    from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+    from langchain_ollama import ChatOllama, OllamaEmbeddings
 
     if embeddings is None:
-        embeddings = OpenAIEmbeddings(
-            model="text-embedding-3-small",
-            api_key=settings.openai_api_key,
+        embeddings = OllamaEmbeddings(
+            model=settings.ollama_embed_model,
+            base_url=settings.ollama_base_url,
         )
     if llm is None:
-        llm = ChatOpenAI(
-            model="gpt-4o-mini",
+        llm = ChatOllama(
+            model=settings.ollama_chat_model,
+            base_url=settings.ollama_base_url,
             temperature=0.3,
-            api_key=settings.openai_api_key,
         )
 
     retriever = get_vectorstore(embeddings).as_retriever(search_kwargs={"k": 8})

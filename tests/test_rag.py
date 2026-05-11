@@ -1,9 +1,9 @@
 """
 Tests for the RAG layer: document builders, indexer, and chain.
 
-OpenAI API calls are never made — a FakeEmbeddings class stands in for
-real embeddings, and the LLM is replaced with a MagicMock where needed.
-Chroma is pointed at a pytest tmp_path so tests don't write to ./chroma_db.
+No external LLM calls are made — a FakeEmbeddings class stands in for
+real embeddings, and a FakeListChatModel replaces the LLM. Chroma is
+pointed at a pytest tmp_path so tests don't touch ./chroma_db.
 """
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ D1 = date(2025, 1, 6)
 
 
 class _FakeEmbeddings(Embeddings):
-    """Deterministic unit-length embeddings — avoids any OpenAI call."""
+    """Deterministic unit-length embeddings — avoids any network call."""
 
     dim = 16
 

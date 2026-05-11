@@ -11,7 +11,6 @@ from sqlalchemy.orm import sessionmaker
 TEST_DB_URL = "postgresql://postgres:postgres@localhost:5432/trainsmart_test"
 
 os.environ["DATABASE_URL"] = TEST_DB_URL
-os.environ.setdefault("OPENAI_API_KEY", "test-key")
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 

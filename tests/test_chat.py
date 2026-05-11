@@ -3,7 +3,7 @@ Tests for the chat API — POST /chat, GET /chat/sessions,
 GET /chat/sessions/{id}/messages.
 
 The RAG chain is replaced with a stub via the _chain_runner indirection
-so no OpenAI calls happen during tests.
+so no Ollama (or any external) calls happen during tests.
 """
 from __future__ import annotations
 

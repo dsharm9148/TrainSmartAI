@@ -5,7 +5,6 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str = "postgresql://postgres:postgres@localhost:5432/trainsmart"
-    openai_api_key: str = ""
     environment: str = "development"
 
     # Readiness score weights (must sum to 1.0)
@@ -16,6 +15,11 @@ class Settings(BaseSettings):
 
     # Chroma
     chroma_persist_dir: str = "./chroma_db"
+
+    # LLM (Ollama — runs locally, no API key required)
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_embed_model: str = "nomic-embed-text"
+    ollama_chat_model: str = "llama3.2:3b"
 
 
 settings = Settings()
