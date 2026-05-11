@@ -2,6 +2,9 @@
 Synthetic Apple Health data generator.
 
 Generates 90 days of realistic health data for demo purposes.
+Includes progressive fitness trends, post-workout fatigue effects,
+and occasional anomaly days to make insights and correlations visible.
+
 Run from the project root:
 
     python data/synthetic/generate_sample.py
@@ -24,11 +27,14 @@ START_DATE = END_DATE - timedelta(days=90)
 TZ_OFFSET = "-0500"
 TZ = timezone(timedelta(hours=-5))
 
-# Personal baselines (realistic for a moderately active adult)
+# Personal baselines (moderately active adult)
 BASE_STEPS = 8500
 BASE_RHR = 58.0
 BASE_SLEEP_HRS = 7.2
 WORKOUT_DAYS_PER_WEEK = 3
+
+# Anomaly days — indices where something "bad" happens (travel, illness, etc.)
+ANOMALY_DAY_INDICES = {12, 31, 47, 63, 78}
 
 
 def fmt_date(dt: datetime) -> str:
@@ -41,25 +47,61 @@ def rand_normal(mean: float, std: float, low: float, high: float) -> float:
 
 
 def generate_days() -> list[dict]:
-    """Generate per-day baseline values for 90 days."""
+    """
+    Generate per-day baseline values with realistic effects:
+    - Progressive fitness trend: steps +15%, RHR -5 bpm over 90 days
+    - Post-workout effect: next day RHR elevated, sleep slightly shorter
+    - Anomaly days: very low activity, elevated HR, poor sleep
+    """
     days = []
+    prev_workout = False  # whether the previous day was a workout day
+
     for i in range(90):
         d = START_DATE + timedelta(days=i)
         weekday = d.weekday()  # 0=Mon, 6=Sun
 
-        # Slightly lower activity on weekends
-        step_mean = BASE_STEPS if weekday < 5 else BASE_STEPS * 0.85
-        sleep_mean = BASE_SLEEP_HRS if weekday < 5 else BASE_SLEEP_HRS + 0.5
+        # Progressive fitness: linear improvement over 90 days
+        progress = i / 89.0  # 0.0 → 1.0
+        step_trend = BASE_STEPS * (1 + 0.15 * progress)
+        rhr_trend = BASE_RHR - (5.0 * progress)
+
+        is_anomaly = i in ANOMALY_DAY_INDICES
+
+        if is_anomaly:
+            # Bad day: low steps, elevated RHR, poor sleep
+            steps = int(rand_normal(2500, 800, 500, 5000))
+            rhr = rand_normal(rhr_trend + 6, 2, 50, 90)
+            sleep_hrs = rand_normal(5.5, 0.8, 3.0, 7.0)
+            avg_hr_mean = rhr + 15
+            is_workout = False
+        else:
+            # Normal day: weekend slightly lower activity
+            step_mean = step_trend if weekday < 5 else step_trend * 0.82
+            sleep_mean = BASE_SLEEP_HRS if weekday < 5 else BASE_SLEEP_HRS + 0.45
+
+            # Post-workout effect: elevated RHR, slightly shorter sleep
+            rhr_bump = rand_normal(3.5, 1.0, 1.5, 6.0) if prev_workout else 0.0
+            sleep_penalty = rand_normal(0.4, 0.15, 0.1, 0.8) if prev_workout else 0.0
+
+            steps = int(rand_normal(step_mean, 2000, 1500, 22000))
+            rhr = rand_normal(rhr_trend + rhr_bump, 3, 40, 85)
+            sleep_hrs = rand_normal(sleep_mean - sleep_penalty, 1.0, 4.0, 10.5)
+            avg_hr_mean = rhr + rand_normal(8, 3, 3, 20)
+            is_workout = (not weekday == 6) and random.random() < (WORKOUT_DAYS_PER_WEEK / 7)
 
         days.append(
             {
                 "date": d,
-                "steps": int(rand_normal(step_mean, 2500, 1000, 25000)),
-                "rhr": rand_normal(BASE_RHR, 4, 40, 90),
-                "sleep_hrs": rand_normal(sleep_mean, 1.2, 3.0, 10.5),
-                "is_workout_day": random.random() < (WORKOUT_DAYS_PER_WEEK / 7),
+                "steps": steps,
+                "rhr": rhr,
+                "sleep_hrs": sleep_hrs,
+                "avg_hr_mean": avg_hr_mean,
+                "is_workout_day": is_workout,
+                "is_anomaly": is_anomaly,
             }
         )
+        prev_workout = is_workout
+
     return days
 
 
@@ -70,7 +112,7 @@ def build_xml(days: list[dict]) -> ET.Element:
     for day in days:
         d = day["date"]
 
-        # Steps (single record per day)
+        # Steps — one record per day
         ET.SubElement(
             root,
             "Record",
@@ -82,13 +124,12 @@ def build_xml(days: list[dict]) -> ET.Element:
             endDate=fmt_date(d.replace(hour=23, minute=59, second=59)),
         )
 
-        # Heart rate (5-8 readings throughout the day)
+        # Heart rate — 5–8 spot readings spread across waking hours
         num_hr = random.randint(5, 8)
         for _ in range(num_hr):
             hour = random.randint(7, 22)
-            minute = random.randint(0, 59)
-            ts = d.replace(hour=hour, minute=minute, second=0)
-            hr_val = rand_normal(65, 12, 45, 140)
+            ts = d.replace(hour=hour, minute=random.randint(0, 59), second=0)
+            hr_val = rand_normal(day["avg_hr_mean"], 10, 45, 140)
             ET.SubElement(
                 root,
                 "Record",
@@ -100,7 +141,7 @@ def build_xml(days: list[dict]) -> ET.Element:
                 endDate=fmt_date(ts + timedelta(seconds=5)),
             )
 
-        # Resting heart rate (1 per day)
+        # Resting heart rate — 1 per day
         ET.SubElement(
             root,
             "Record",
@@ -112,10 +153,9 @@ def build_xml(days: list[dict]) -> ET.Element:
             endDate=fmt_date(d.replace(hour=23, minute=59, second=59)),
         )
 
-        # Sleep (bedtime ~10pm-midnight, wake up based on duration)
+        # Sleep — bedtime ~10–11 pm, wake up based on duration
         bedtime_hour = random.randint(22, 23)
-        bedtime_minute = random.randint(0, 59)
-        sleep_start = d.replace(hour=bedtime_hour, minute=bedtime_minute, second=0)
+        sleep_start = d.replace(hour=bedtime_hour, minute=random.randint(0, 59), second=0)
         sleep_end = sleep_start + timedelta(hours=day["sleep_hrs"])
         ET.SubElement(
             root,
@@ -127,16 +167,15 @@ def build_xml(days: list[dict]) -> ET.Element:
             endDate=fmt_date(sleep_end),
         )
 
-        # Workout (on workout days)
-        if day["is_workout_day"]:
-            workout_types = [
+        # Workout — on non-anomaly workout days
+        if day["is_workout_day"] and not day["is_anomaly"]:
+            activity = random.choice([
                 "HKWorkoutActivityTypeRunning",
                 "HKWorkoutActivityTypeCycling",
                 "HKWorkoutActivityTypeWalking",
-            ]
-            activity = random.choice(workout_types)
-            duration_min = rand_normal(35, 12, 15, 90)
-            calories = rand_normal(280, 80, 100, 600)
+            ])
+            duration_min = rand_normal(38, 12, 15, 90)
+            calories = rand_normal(290, 80, 100, 600)
             wo_hour = random.choice([6, 7, 12, 17, 18])
             wo_start = d.replace(hour=wo_hour, minute=0, second=0)
             wo_end = wo_start + timedelta(minutes=duration_min)
@@ -157,7 +196,7 @@ def build_xml(days: list[dict]) -> ET.Element:
 
 
 def main():
-    print(f"Generating 90-day synthetic export ({START_DATE.date()} → {END_DATE.date()})...")
+    print(f"Generating 90-day synthetic export ({START_DATE.date()} → END_DATE {END_DATE.date()})...")
     days = generate_days()
     root = build_xml(days)
 
@@ -167,9 +206,12 @@ def main():
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     tree.write(str(OUTPUT_PATH), encoding="utf-8", xml_declaration=True)
 
-    total_records = len(root)
-    print(f"Written {total_records} elements to {OUTPUT_PATH}")
-    print("Use this file on the Upload page to demo without personal data.")
+    workout_days = sum(1 for d in days if d["is_workout_day"])
+    anomaly_days = sum(1 for d in days if d["is_anomaly"])
+    print(f"  {len(root)} XML elements written to {OUTPUT_PATH}")
+    print(f"  {workout_days} workout days, {anomaly_days} anomaly days (illness/travel)")
+    print(f"  Fitness trend: steps +15%, resting HR -5 bpm over 90 days")
+    print("Upload data/synthetic/demo_export.xml on the Upload page to demo without personal data.")
 
 
 if __name__ == "__main__":
