@@ -31,6 +31,19 @@ class DailyFeaturesOut(BaseModel):
     active_energy_kcal: Optional[float] = None
 
 
+class ReadinessOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    date: date
+    score: float
+    sleep_score: Optional[float] = None
+    hr_score: Optional[float] = None
+    load_score: Optional[float] = None
+    consistency_score: Optional[float] = None
+    explanation: Optional[str] = None
+
+
 class WeeklySummaryOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
