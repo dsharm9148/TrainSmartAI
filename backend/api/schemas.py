@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
@@ -64,6 +65,33 @@ class InsightOut(BaseModel):
     insight_type: Optional[str] = None
     text: str
     created_at: datetime
+
+
+class ChatRequest(BaseModel):
+    message: str
+    session_id: Optional[UUID] = None
+
+
+class ChatResponse(BaseModel):
+    session_id: UUID
+    response: str
+
+
+class ChatMessageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    role: str
+    content: str
+    created_at: datetime
+
+
+class ChatSessionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    session_id: UUID
+    started_at: datetime
+    last_active: datetime
 
 
 class WeeklySummaryOut(BaseModel):

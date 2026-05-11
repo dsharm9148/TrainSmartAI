@@ -10,8 +10,9 @@ Public API:
 """
 from __future__ import annotations
 
+from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnablePassthrough
 
 from backend.config import settings
@@ -32,11 +33,11 @@ _HUMAN = "{question}"
 
 def build_rag_chain(embeddings=None, llm=None):
     """
-    Build a retrieval-augmented generation chain.
+    Build a retrieval-augmented generation chain with chat history support.
 
-    Returns a LangChain Runnable that accepts a question string and returns
-    a plain-text answer. Pass custom `embeddings` or `llm` to substitute
-    fakes in tests without touching environment variables.
+    Returns a LangChain Runnable that accepts
+        {"question": str, "history": list[BaseMessage]}
+    and returns a plain-text answer. History may be an empty list.
     """
     from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
@@ -53,19 +54,44 @@ def build_rag_chain(embeddings=None, llm=None):
         )
 
     retriever = get_vectorstore(embeddings).as_retriever(search_kwargs={"k": 8})
-    prompt = ChatPromptTemplate.from_messages([("system", _SYSTEM), ("human", _HUMAN)])
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", _SYSTEM),
+        MessagesPlaceholder("history"),
+        ("human", _HUMAN),
+    ])
 
     def _join_docs(docs):
         return "\n\n".join(d.page_content for d in docs)
 
     return (
-        {"context": retriever | _join_docs, "question": RunnablePassthrough()}
+        {
+            "context": (lambda x: x["question"]) | retriever | _join_docs,
+            "question": lambda x: x["question"],
+            "history": lambda x: x.get("history", []),
+        }
         | prompt
         | llm
         | StrOutputParser()
     )
 
 
-def ask(question: str, embeddings=None, llm=None) -> str:
-    """Convenience wrapper: build the chain and run a single question."""
-    return build_rag_chain(embeddings=embeddings, llm=llm).invoke(question)
+def ask(
+    question: str,
+    history: list | None = None,
+    embeddings=None,
+    llm=None,
+) -> str:
+    """Single-turn or multi-turn wrapper. `history` is a list of BaseMessage."""
+    chain = build_rag_chain(embeddings=embeddings, llm=llm)
+    return chain.invoke({"question": question, "history": history or []})
+
+
+def history_from_rows(rows) -> list:
+    """Convert ChatMessage ORM rows (oldest-first) into LangChain messages."""
+    out = []
+    for r in rows:
+        if r.role == "user":
+            out.append(HumanMessage(content=r.content))
+        else:
+            out.append(AIMessage(content=r.content))
+    return out

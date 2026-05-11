@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.api.routes.chat import router as chat_router
 from backend.api.routes.dashboard import router as dashboard_router
 from backend.api.routes.ingestion import router as ingestion_router
 from backend.api.routes.insights import router as insights_router
@@ -41,6 +42,7 @@ app.include_router(dashboard_router)
 app.include_router(readiness_router)
 app.include_router(insights_router)
 app.include_router(recommendations_router)
+app.include_router(chat_router)
 
 
 @app.get("/health", tags=["meta"])
