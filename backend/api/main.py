@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.api.routes.dashboard import router as dashboard_router
+from backend.api.routes.ingestion import router as ingestion_router
 from backend.db.session import check_connection
 
 
@@ -30,6 +32,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(ingestion_router)
+app.include_router(dashboard_router)
 
 
 @app.get("/health", tags=["meta"])
