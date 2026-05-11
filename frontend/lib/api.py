@@ -100,6 +100,22 @@ def post_chat(message: str, session_id: Optional[str] = None) -> dict:
     return r.json()
 
 
+def get_clusters() -> list[dict]:
+    r = requests.get(_url("/clusters"), timeout=DEFAULT_TIMEOUT)
+    r.raise_for_status()
+    return r.json()
+
+
+def post_clusters_recompute(n_clusters: int = 4) -> dict:
+    r = requests.post(
+        _url("/clusters/recompute"),
+        params={"n_clusters": n_clusters},
+        timeout=60,
+    )
+    r.raise_for_status()
+    return r.json()
+
+
 def list_chat_sessions() -> list[dict]:
     r = requests.get(_url("/chat/sessions"), timeout=DEFAULT_TIMEOUT)
     r.raise_for_status()

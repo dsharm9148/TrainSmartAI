@@ -94,6 +94,15 @@ class ChatSessionOut(BaseModel):
     last_active: datetime
 
 
+class ClusterAssignmentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    date: date
+    cluster_id: Optional[int] = None
+    cluster_label: Optional[str] = None
+
+
 class WeeklySummaryOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

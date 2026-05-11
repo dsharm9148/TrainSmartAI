@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from backend.api.schemas import UploadResponse
+from backend.clustering.kmeans import compute_clusters
 from backend.db.session import get_db
 from backend.ingestion.pipeline import run_ingestion
 from backend.preprocessing.daily_features import compute_daily_features
@@ -43,6 +44,7 @@ async def upload_export(
         weeks_computed = compute_weekly_summaries(db)
         generate_insights(db)
         generate_recommendations(db)
+        compute_clusters(db)
     finally:
         tmp_path.unlink(missing_ok=True)
 
