@@ -8,6 +8,7 @@ from backend.api.schemas import UploadResponse
 from backend.db.session import get_db
 from backend.ingestion.pipeline import run_ingestion
 from backend.preprocessing.daily_features import compute_daily_features
+from backend.analytics.insights import generate_insights
 from backend.scoring.readiness import compute_readiness_scores
 
 router = APIRouter()
@@ -37,6 +38,7 @@ async def upload_export(
         summary = run_ingestion(tmp_path, db)
         days_computed = compute_daily_features(db)
         compute_readiness_scores(db)
+        generate_insights(db)
     finally:
         tmp_path.unlink(missing_ok=True)
 

@@ -44,6 +44,16 @@ class ReadinessOut(BaseModel):
     explanation: Optional[str] = None
 
 
+class InsightOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    generated_for: date
+    insight_type: Optional[str] = None
+    text: str
+    created_at: datetime
+
+
 class WeeklySummaryOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
