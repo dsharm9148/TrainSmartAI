@@ -210,7 +210,7 @@ def main():
     anomaly_days = sum(1 for d in days if d["is_anomaly"])
     print(f"  {len(root)} XML elements written to {OUTPUT_PATH}")
     print(f"  {workout_days} workout days, {anomaly_days} anomaly days (illness/travel)")
-    print(f"  Fitness trend: steps +15%, resting HR -5 bpm over 90 days")
+    print("  Fitness trend: steps +15%, resting HR -5 bpm over 90 days")
     print("Upload data/synthetic/demo_export.xml on the Upload page to demo without personal data.")
 
 

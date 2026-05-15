@@ -5,7 +5,6 @@ These tests verify that models are importable and structurally correct.
 The connection test requires a running Postgres instance.
 """
 
-import pytest
 
 from backend.db import models
 from backend.db.session import Base, check_connection

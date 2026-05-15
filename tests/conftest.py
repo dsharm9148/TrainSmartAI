@@ -24,8 +24,8 @@ def fixtures_dir() -> Path:
 def db_engine():
     """Create tables once per test session in trainsmart_test, drop when done."""
     # Import after env var is set so engine uses the test DB URL
-    from backend.db.session import Base
     import backend.db.models  # noqa: F401 — registers all models with Base
+    from backend.db.session import Base
 
     engine = create_engine(TEST_DB_URL)
     Base.metadata.create_all(engine)

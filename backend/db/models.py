@@ -28,10 +28,10 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
+from backend.db.session import Base
+
 # Convenience alias — maps to TIMESTAMP WITH TIME ZONE in Postgres
 TZ = DateTime(timezone=True)
-
-from backend.db.session import Base
 
 
 class HealthRecord(Base):

@@ -4,13 +4,13 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
+from backend.analytics.insights import generate_insights
+from backend.analytics.weekly import compute_weekly_summaries
 from backend.api.schemas import UploadResponse
 from backend.clustering.kmeans import compute_clusters
 from backend.db.session import get_db
 from backend.ingestion.pipeline import run_ingestion
 from backend.preprocessing.daily_features import compute_daily_features
-from backend.analytics.insights import generate_insights
-from backend.analytics.weekly import compute_weekly_summaries
 from backend.recommendations.engine import generate_recommendations
 from backend.scoring.readiness import compute_readiness_scores
 

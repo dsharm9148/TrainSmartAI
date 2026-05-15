@@ -16,14 +16,13 @@ Rolling windows (from daily_features, past only):
   Jan 5 consistency  = std of sleep_start hours Jan 2–4 ≥ 3 points → computed
 """
 
-from datetime import date, datetime, timezone, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from typing import Optional
 
 import pandas as pd
 import pytest
 
-from backend.db.models import DailyFeatures, ReadinessScore
+from backend.db.models import ReadinessScore
 from backend.ingestion.pipeline import run_ingestion
 from backend.preprocessing.daily_features import compute_daily_features
 from backend.scoring.readiness import (

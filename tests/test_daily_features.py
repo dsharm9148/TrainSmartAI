@@ -13,7 +13,7 @@ Expected fixture data (from sample_export.xml):
   Jan 5: steps=7210,  avg_hr=69.0, rhr=59, sleep=7.5h,  workouts=None
 """
 
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 
 import pytest

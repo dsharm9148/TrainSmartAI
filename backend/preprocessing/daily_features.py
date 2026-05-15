@@ -20,7 +20,7 @@ None vs 0 is a meaningful distinction: "no data" is different from "zero steps".
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date
 from typing import Optional
 
 import pandas as pd

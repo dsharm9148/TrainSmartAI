@@ -8,8 +8,8 @@ from backend.api.routes.clusters import router as clusters_router
 from backend.api.routes.dashboard import router as dashboard_router
 from backend.api.routes.ingestion import router as ingestion_router
 from backend.api.routes.insights import router as insights_router
-from backend.api.routes.recommendations import router as recommendations_router
 from backend.api.routes.readiness import router as readiness_router
+from backend.api.routes.recommendations import router as recommendations_router
 from backend.db.session import check_connection
 
 

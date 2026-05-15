@@ -1,10 +1,19 @@
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py311"
 exclude = ["migrations", ".venv", "venv"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+# User-facing copy lives in these files (recommendation text, page hero
+# subtitles, help strings). Wrapping that prose hurts readability, so the
+# line-length rule is relaxed here.
+[tool.ruff.lint.per-file-ignores]
+"backend/recommendations/engine.py" = ["E501"]
+"backend/analytics/insights.py" = ["E501"]
+"backend/api/routes/dashboard.py" = ["E501"]
+"frontend/**" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

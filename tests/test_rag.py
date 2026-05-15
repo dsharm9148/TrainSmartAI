@@ -7,7 +7,6 @@ pointed at a pytest tmp_path so tests don't touch ./chroma_db.
 """
 from __future__ import annotations
 
-import pytest
 from datetime import date, timedelta
 from unittest.mock import MagicMock
 
@@ -219,6 +218,7 @@ class TestIndexHealthData:
 
     def test_get_vectorstore_returns_chroma(self, tmp_path, monkeypatch):
         from langchain_chroma import Chroma
+
         from backend.rag.indexer import get_vectorstore
         _redirect_chroma(monkeypatch, tmp_path)
         vs = get_vectorstore(embeddings=_FakeEmbeddings())
@@ -237,6 +237,7 @@ class TestBuildRagChain:
 
     def test_ask_returns_string(self, tmp_path, monkeypatch):
         from langchain_core.language_models.fake_chat_models import FakeListChatModel
+
         from backend.rag.chain import ask
         _redirect_chroma(monkeypatch, tmp_path)
 

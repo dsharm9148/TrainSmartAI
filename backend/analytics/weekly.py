@@ -9,7 +9,7 @@ Public API:
 """
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import timedelta
 from typing import Optional
 
 import pandas as pd

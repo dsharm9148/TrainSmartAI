@@ -31,7 +31,6 @@ from sqlalchemy.orm import Session
 from backend.config import settings
 from backend.db.models import DailyFeatures, ReadinessScore
 
-
 # ─── Public API ───────────────────────────────────────────────────────────────
 
 

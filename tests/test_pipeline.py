@@ -7,8 +7,6 @@ Postgres instance. They require docker-compose postgres to be running.
 
 from pathlib import Path
 
-import pytest
-
 from backend.ingestion.pipeline import run_ingestion
 
 FIXTURE_XML = Path(__file__).parent / "fixtures" / "sample_export.xml"

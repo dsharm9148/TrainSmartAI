@@ -22,7 +22,7 @@ from backend.analytics.insights import (
     _insight_workout_pattern,
     generate_insights,
 )
-from backend.db.models import DailyFeatures, Insight
+from backend.db.models import Insight
 from backend.ingestion.pipeline import run_ingestion
 from backend.preprocessing.daily_features import compute_daily_features
 

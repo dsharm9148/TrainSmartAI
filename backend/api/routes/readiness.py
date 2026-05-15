@@ -30,7 +30,8 @@ def get_readiness(
     db: Session = Depends(get_db),
 ) -> list[ReadinessOut]:
     """Return readiness scores for the requested date range, sorted oldest-first."""
-    from datetime import date as date_cls, timedelta
+    from datetime import date as date_cls
+    from datetime import timedelta
     if end_date is None:
         end_date = date_cls.today()
     if start_date is None:

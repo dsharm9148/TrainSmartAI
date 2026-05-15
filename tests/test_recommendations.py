@@ -11,7 +11,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from backend.db.models import DailyFeatures, ReadinessScore, Recommendation
+from backend.db.models import Recommendation
 from backend.ingestion.pipeline import run_ingestion
 from backend.preprocessing.daily_features import compute_daily_features
 from backend.recommendations.engine import (

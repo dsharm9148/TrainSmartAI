@@ -2,10 +2,11 @@
 Tests for backend/analytics/weekly.py — compute_weekly_summaries.
 """
 
-import pytest
 from datetime import date, timedelta
 
-from backend.analytics.weekly import compute_weekly_summaries, _nanmean, _sleep_consistency
+import pytest
+
+from backend.analytics.weekly import _nanmean, _sleep_consistency, compute_weekly_summaries
 from backend.db.models import DailyFeatures, ReadinessScore, WeeklySummary
 
 # A known Monday
@@ -80,7 +81,7 @@ class TestSleepConsistency:
 
     def test_score_clamped_at_zero(self):
         import pandas as pd
-        s = pd.Series([4.0, 10.0])  # std = 3 → 100 - 75 = 25, still > 0
+        pd.Series([4.0, 10.0])  # std = 3 → 100 - 75 = 25, still > 0
         s2 = pd.Series([1.0, 15.0])  # std >> 4 → clamped to 0
         score = _sleep_consistency(s2)
         assert score == pytest.approx(0.0)

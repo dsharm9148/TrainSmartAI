@@ -5,18 +5,17 @@ Parser and cleaner tests are pure Python — no database required.
 Loader tests require a running Postgres instance.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 import pytest
 
-from backend.ingestion.cleaner import clean_records, _parse_date, _safe_float
+from backend.ingestion.cleaner import _parse_date, _safe_float, clean_records
 from backend.ingestion.parser import (
-    RECORD_TYPES,
-    SLEEP,
-    STEP_COUNT,
     HEART_RATE,
     RESTING_HR,
+    SLEEP,
+    STEP_COUNT,
     parse_export,
 )
 
@@ -240,7 +239,7 @@ def test_safe_float_converts_valid_string():
 
 def test_loader_inserts_records(db_session):
     """Cleaned records from the fixture are successfully inserted."""
-    from backend.ingestion.loader import load_records, get_record_count
+    from backend.ingestion.loader import get_record_count, load_records
 
     raw = list(parse_export(FIXTURE_XML))
     cleaned = clean_records(raw)
@@ -252,12 +251,12 @@ def test_loader_inserts_records(db_session):
 
 def test_loader_is_idempotent(db_session):
     """Running the loader twice does not create duplicate records."""
-    from backend.ingestion.loader import load_records, get_record_count
+    from backend.ingestion.loader import get_record_count, load_records
 
     raw = list(parse_export(FIXTURE_XML))
     cleaned = clean_records(raw)
 
-    first_run = load_records(db_session, cleaned)
+    load_records(db_session, cleaned)
     count_after_first = get_record_count(db_session)
 
     second_run = load_records(db_session, cleaned)
