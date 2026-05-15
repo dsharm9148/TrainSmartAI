@@ -349,20 +349,84 @@ All settings live in `backend/config.py` and can be overridden via environment v
 
 ## Deployment
 
-The repo includes a `render.yaml` that provisions a FastAPI web service and a managed Postgres database on [Render](https://render.com). Push to GitHub, connect the repo in Render's "New Blueprint" flow, and it spins up both services. Alembic migrations run as part of the build step.
+The repo ships with a `render.yaml` blueprint that provisions a FastAPI web service and a managed Postgres database in one shot. The frontend ships separately to Streamlit Community Cloud and points at the deployed API. Both platforms have free tiers.
 
-```yaml
-services:
-  - type: web
-    name: trainsmart-api
-    runtime: python
-    buildCommand: pip install -r requirements.txt && alembic upgrade head
-    startCommand: uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT
+### Part A — Deploy the API + Postgres on Render
+
+1. **Create / sign in** at <https://render.com> using your **GitHub** account.
+2. In the top-right menu click **New +** → **Blueprint**.
+3. Click **Connect a repository**, authorize Render to access GitHub, and pick **`dsharm9148/TrainSmartAI`**.
+4. Render reads `render.yaml` and shows two resources it will create:
+   - `trainsmart-api` — Python web service running Uvicorn
+   - `trainsmart-db` — managed Postgres instance, auto-wired into `DATABASE_URL`
+5. Click **Apply**. Render provisions both services. The first build takes about **5 minutes** — it installs `requirements.txt` and runs `alembic upgrade head` as part of the build command in `render.yaml`.
+6. When the API service status flips to **Live**, copy its public URL. It will look like:
+   ```
+   https://trainsmart-api.onrender.com
+   ```
+
+**Smoke-test the deployed API:**
+
+```bash
+curl https://trainsmart-api.onrender.com/health
+# → {"status":"ok","database":"connected"}
 ```
 
-For the frontend, deploy `frontend/Home.py` to [Streamlit Community Cloud](https://streamlit.io/cloud). Set `TRAINSMART_API_URL` in the Streamlit app secrets to point at the Render API URL.
+**Seed the deployed API with demo data** (optional but recommended so reviewers see a populated dashboard):
 
-**One caveat:** Ollama runs locally on your machine and is not deployed. In a cloud deployment, the dashboard, insights, recommendations, readiness, and clustering pages all work end-to-end against the Render API. The **Chat** page requires the local stack (Ollama + Chroma index) because LLM inference happens on your machine.
+```bash
+# Generate the demo export locally
+python data/synthetic/generate_sample.py
+
+# Upload it to the deployed API
+curl -X POST https://trainsmart-api.onrender.com/upload \
+  -F "file=@data/synthetic/demo_export.xml"
+```
+
+The upload runs the entire pipeline on Render (ingest → daily features → readiness → weekly summaries → insights → recommendations → clustering).
+
+### Part B — Deploy the Streamlit frontend
+
+1. **Sign in** at <https://streamlit.io/cloud> using your **GitHub** account.
+2. Click **New app** → **Deploy from GitHub**.
+3. Fill in:
+   - **Repository:** `dsharm9148/TrainSmartAI`
+   - **Branch:** `main`
+   - **Main file path:** `frontend/Home.py`
+4. Before clicking **Deploy**, expand **Advanced settings** → **Secrets** and paste:
+
+   ```toml
+   TRAINSMART_API_URL = "https://trainsmart-api.onrender.com"
+   ```
+
+   Replace the URL with whatever Render gave you in Part A.
+5. Click **Deploy**. The build takes about **3 minutes**.
+6. Your live URL will look like `https://<your-app>.streamlit.app`.
+
+### Part C — Verifying the deployed app
+
+Open the Streamlit URL. The Home page should show:
+- A green **Backend OK** pill (top-left)
+- Non-zero counts for "Days tracked", "Weeks summarised", and so on (assuming you seeded demo data)
+- A "Latest readiness" gauge and top recommendations strip
+
+Navigate through **Dashboard**, **Readiness**, **Insights**, **Recommendations**, and **Day Types** — all should populate from the Render API.
+
+### Part D — Known caveats
+
+| Issue | Reason | Workaround |
+|---|---|---|
+| **Chat page returns a 500** in production | Ollama runs locally only; cloud deploy has no LLM | Run the project locally to use chat, or document the local-only requirement in your demo |
+| **Render free Postgres expires after 90 days** | Render's policy on free databases | Renew or upgrade to a paid tier ($7/mo as of writing) to keep data |
+| **First request after 15 minutes idle is slow (~30 s)** | Render free web services spin down when idle | Acceptable for portfolio demos. Upgrade to **Starter** to keep the service warm |
+| **Re-pushing to `main` redeploys automatically** | Render watches the branch | Use a feature branch and merge intentionally if you want manual control |
+
+### Part E — Updating after deployment
+
+After the initial deploy, every push to `main` triggers an automatic redeploy of both services. To redeploy manually:
+
+- **Render:** the API service page → **Manual Deploy** → **Deploy latest commit**
+- **Streamlit Cloud:** app menu (`⋮`) → **Reboot app**
 
 ---
 
